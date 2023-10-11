@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import camera as cm
 from pathlib import Path
 from copy import deepcopy
 
@@ -43,12 +44,16 @@ functions = [
     ['Screenshot', ['Take', 'Path']],
     ['Image replace', ['Change', 'Reset'] ]
 ]
-
+cameras = cm.all_cameras()
+cameras = cm
 layout = [
     [sg.Menu(functions, key='-MENU-')],
     [sg.Input(key = '-INPUT-', expand_x=True), sg.Button('Open', key= '-OPEN-')],
     [sg.Button('Start', key= '-START-'), sg.Button('Stop', key= '-STOP-')],
-    [sg.Checkbox('Use Image', key= '-IMUSAGE-'), sg.Checkbox('Double', key='-DOUBLE-')]
+    [sg.Checkbox('Use Image', key= '-IMUSAGE-'), sg.Checkbox('Double', key='-DOUBLE-')],
+    [sg.Spin(cameras, key = '-CAMERAS-'), sp.Spin(resolutions, key = '-resolutions-')],
+    []
+    []
 ]
 
 window = sg.Window('Editor', layout)
