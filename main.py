@@ -1,37 +1,12 @@
 import PySimpleGUI as sg
+import cv2
 import camera as cm
+import painter as pr
+import menu
+import threading
 from pathlib import Path
 from copy import deepcopy
 
-def choose_color_size():
-    color_layout = [
-        [
-            sg.Input(default_text=functions[3][1][2], key='-SIZE-')
-        ],
-        [
-            sg.Button('Red', button_color='Red'),
-            sg.Button('Blue', button_color='Blue'),
-            sg.Button('Black', button_color='Black')
-        ],
-        [
-            sg.Button('White', button_color='White'),
-            sg.Button('Yellow', button_color='Yellow'),
-            sg.Button('Green', button_color='Green')
-        ],
-    ]
-    color_window = sg.Window('Editor', color_layout)
-    while True:
-        event, values = color_window.read()
-        if event== sg.WIN_CLOSED:
-            break
-        else:
-            if values['-SIZE-'].isnumeric():
-                functions[3][1][2] = values['-SIZE-']
-            functions[3][1][1]=event
-
-
-            break
-    color_window.close()
 
 
 sg.theme('GrayGrayGray')
@@ -45,24 +20,39 @@ functions = [
     ['Image replace', ['Change', 'Reset'] ]
 ]
 cameras = cm.all_cameras()
-cameras = cm
-layout = [
-    [sg.Menu(functions, key='-MENU-')],
-    [sg.Input(key = '-INPUT-', expand_x=True), sg.Button('Open', key= '-OPEN-')],
-    [sg.Button('Start', key= '-START-'), sg.Button('Stop', key= '-STOP-')],
-    [sg.Checkbox('Use Image', key= '-IMUSAGE-'), sg.Checkbox('Double', key='-DOUBLE-')],
-    [sg.Spin(cameras, key = '-CAMERAS-'), sp.Spin(resolutions, key = '-resolutions-')],
-    []
-    []
-]
+if cameras != 0 :
+    layout = [
+        [sg.Menu(functions, key='-MENU-')],
+        [sg.Text('Background image')],
+        [sg.Input(key = '-INPUT-', expand_x=True), sg.Button('Open', key= '-OPEN-')],
+        [sg.Checkbox('Do not use Image', key='-IMUSAGE-'), sg.Checkbox('Do not Double', key='-DOUBLE-')],
+        [sg.Text('Camera: '), sg.Spin(cameras, initial_value=cameras[0], key='-CAMERAS-'),
+         sg.Button('Change camera', key='-CAMERA-')],
+        [sg.Button('Start', key= '-START-'), sg.Button('Stop', key= '-STOP-')],
+
+
+        [sg.Text(text= "These parameters can be changed dynamically, changes in head menu must be applied too")],
+        [sg.Text('Which hand will be used: '),sg.Radio('Both','hands', key='-BOTH-', default=True, enable_events=True ), sg.Radio('Left', 'hands', key='-LEFT-', enable_events=True), sg.Radio('Right', 'hands', key='-RIGHT-', enable_events=True)],
+        [sg.Text('FPS regulation (less value will load cpu), use natural numbers'), sg.Input(default_text=1, key='-WAIT-')],
+        [sg.Volume],
+        [sg.Button('Apply', key='-APPLY-')]
+
+
+    ]
+else:
+    layout = [
+        [sg.Text(text='Connect camera, and reopen program')]
+    ]
 
 window = sg.Window('Editor', layout)
+cameraNo = 0
+cap = cv2.VideoCapture(0)
+
 while True:
     event, values = window.read()
 
     if event == sg.WIN_CLOSED:
         break
-    print(1)
     match event:
         case 'Take':
             print('screenshot')
@@ -95,7 +85,7 @@ while True:
             functions[2][1][0] = 'On PL'
             window['-MENU-'].update(functions)
         case 'Choose':
-            choose_color_size()
+            menu.choose_color_size()
             window['-MENU-'].update(functions)
         case 'Change':
             'black screen'
@@ -105,4 +95,7 @@ while True:
             file_path = sg.popup_get_file('open', no_window=True)
             if file_path:
                 window['-INPUT-'].update(file_path)
+        case '-START-':
+            cap = cv2.VideoCapture(values['-CAMERAS-'])
+            pr.Paint()
 window.close()
